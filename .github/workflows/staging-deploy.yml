@@ -50,6 +50,7 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          envs: GITHUB_SHA,DOCKERHUB_USERNAME,DATABASE_URL,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,AWS_S3_BUCKET_NAME,JWT_SECRET
           script: |
             docker pull $DOCKERHUB_USERNAME/pearlpostbackend:${GITHUB_SHA}
             docker stop pearlpostbackend || true
