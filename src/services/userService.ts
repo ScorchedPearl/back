@@ -270,7 +270,7 @@ class UserService {
         following: true,
       },
     });
-    return result.map((el) => el.follower);
+    return result.map((el: any) => el.follower);
   }
   public static async getFollowing(id: string) {
     const result = await prismaClient.follows.findMany({
