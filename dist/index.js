@@ -41,9 +41,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.users = void 0;
 const app_1 = require("./app");
 const dotenv = __importStar(require("dotenv"));
+const ws_1 = require("ws");
+const userService_1 = __importDefault(require("./wsservices/userService"));
+const roomService_1 = __importDefault(require("./wsservices/roomService"));
+const callservice_1 = __importDefault(require("./wsservices/callservice"));
 dotenv.config();
 const PORT = 8000;
 function init() {
@@ -53,3 +61,45 @@ function init() {
     });
 }
 init();
+const wss = new ws_1.WebSocketServer({ port: 8080, });
+exports.users = [];
+wss.on("connection", (ws, request) => __awaiter(void 0, void 0, void 0, function* () {
+    const url = request.url;
+    if (!url) {
+        return;
+    }
+    const queryParams = new URLSearchParams(url.split("?")[1]);
+    const token = queryParams.get("token") || "";
+    const user = yield userService_1.default.verifyUser(token);
+    const userid = user === null || user === void 0 ? void 0 : user.id;
+    if (!userid) {
+        ws.send("Unauthorized");
+        ws.close();
+        return;
+    }
+    exports.users.push({ userid, ws, rooms: [] });
+    ws.on("message", (message) => {
+        const parsedData = JSON.parse(message.toString());
+        if (parsedData.type === "join_room") {
+            roomService_1.default.joinRoom(parsedData.roomId, ws);
+        }
+        if (parsedData.type === "leave_room") {
+            roomService_1.default.leaveRoom(parsedData.roomId, ws);
+        }
+        if (parsedData.type === "message_in_room") {
+            roomService_1.default.msgInRoom(parsedData.roomId, ws, parsedData.message, parsedData.userId, parsedData.imageURL);
+        }
+        if (parsedData.type === "reaction_in_room") {
+            roomService_1.default.reactInRoom(parsedData.roomId, ws, parsedData.messageId, parsedData.reaction, parsedData.userId);
+        }
+        if (parsedData.type === "initiate_call") {
+            callservice_1.default.initiateCall(parsedData.roomId, ws, parsedData.userId, parsedData.data);
+        }
+        if (parsedData.type === "answer_call") {
+            callservice_1.default.answerCall(parsedData.roomId, ws, parsedData.data, parsedData.userId);
+        }
+        if (parsedData.type === "hangup_call") {
+            callservice_1.default.hangupCall(parsedData.roomId, ws, parsedData.userId, parsedData.data);
+        }
+    });
+}));

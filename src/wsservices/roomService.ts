@@ -69,7 +69,7 @@ class RoomService {
   public static async reactInRoom(roomId: string, ws: WebSocket, messageId: string,reaction:string,userId:string) {
     try {
       console.log("reactInRoom", roomId, messageId, reaction,userId);
-      await prismaClient.$transaction(async (prisma) => {
+      await prismaClient.$transaction(async (prisma: any) => {
         const reactionInDb = await prisma.reaction.findUnique({
           where: { authorId_messageId: { messageId, authorId: userId } },
         });

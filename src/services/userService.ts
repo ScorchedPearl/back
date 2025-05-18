@@ -280,7 +280,7 @@ class UserService {
         following: true,
       },
     });
-    return result.map((el) => el.following);
+    return result.map((el: any) => el.following);
   }
   public static async getRecommendedUsers(id: string) {
     // const cachedValue=await redisClient.get(`recommendedUsers:${id}`);
@@ -305,7 +305,7 @@ class UserService {
         if (
           follower.following.id !== id &&
           myFollowing.findIndex(
-            (e) => e.followingid === follower.following.id
+            (e: any) => e.followingid === follower.following.id
           ) < 0
         ) {
           userToRecommend.push(follower.following);
@@ -313,8 +313,8 @@ class UserService {
       }
     }
     const uniqueArray = userToRecommend.filter(
-      (item, index, self) =>
-        index === self.findIndex((other) => other.id === item.id)
+      (item: any, index: number, self: any[]) =>
+        index === self.findIndex((other: any) => other.id === item.id)
     );
 
     // await redisClient.set(`recommendedUsers:${id}`,JSON.stringify(uniqueArray));
@@ -406,7 +406,7 @@ class UserService {
     startOfMonth.setHours(0, 0, 0, 0);
     
 
-    likes.forEach((like) => {
+    likes.forEach((like: any) => {
           const likeDate = new Date(like.createdAt);
           if (likeDate >= startOfWeek) {
             const day = (likeDate.getDay() + 6) % 7; 
@@ -418,7 +418,7 @@ class UserService {
           }
         });
 
-    comments.forEach((comment) => {
+    comments.forEach((comment: any) => {
           const commentDate = new Date(comment.createdAt);
           if (commentDate >= startOfWeek) {
             const day = (commentDate.getDay() + 6) % 7; 
@@ -500,8 +500,8 @@ class UserService {
       time: Date;
     }[] = [];
 
-    userPosts.forEach(post => {
-      post.comments.forEach(comment => {
+    userPosts.forEach((post: any) => {
+      post.comments.forEach((comment: any) => {
       activities.push({
         id: comment.id,
         user: { name: comment.author.name, avatar: comment.author.profileImageURL, username: comment.author.name },
@@ -510,7 +510,7 @@ class UserService {
         time: comment.createdAt,
       });
       });
-      post.likes.forEach(like => {
+      post.likes.forEach((like: any) => {
       activities.push({
         id: like.id,
         user: { name: like.user.name, avatar: like.user.profileImageURL, username: like.user.name },
@@ -521,8 +521,8 @@ class UserService {
       });
     });
 
-    userComments.forEach(comment => {
-      comment.replies.forEach(reply => {
+    userComments.forEach((comment: any) => {
+      comment.replies.forEach((reply: any) => {
       activities.push({
         id: reply.id,
         user: { name: reply.author.name, avatar: reply.author.profileImageURL, username: reply.author.name },
@@ -531,7 +531,7 @@ class UserService {
         time: reply.createdAt,
       });
       });
-      comment.likes.forEach(like => {
+      comment.likes.forEach((like: any) => {
       activities.push({
         id: like.id,
         user: { name: like.user.name, avatar: like.user.profileImageURL, username: like.user.name },
@@ -542,8 +542,8 @@ class UserService {
       });
     });
 
-    userReplies.forEach(reply => {
-      reply.likes.forEach(like => {
+    userReplies.forEach((reply: any) => {
+      reply.likes.forEach((like: any) => {
       activities.push({
         id: like.id,
         user: { name: like.user.name, avatar: like.user.profileImageURL, username: like.user.name },
@@ -554,19 +554,19 @@ class UserService {
       });
     });
 
-    userStories.forEach(story => {
-      story.likes.forEach(like => {
-      activities.push({
-        id: like.id,
-        user: { name: like.user.name, avatar: like.user.profileImageURL, username: like.user.name },
-        action: 'like',
-        content: `liked your story`,
-        time: like.createdAt,
-      });
+    userStories.forEach((story: any) => {
+      story.likes.forEach((like: any) => {
+        activities.push({
+          id: like.id,
+          user: { name: like.user.name, avatar: like.user.profileImageURL, username: like.user.name },
+          action: 'like',
+          content: `liked your story`,
+          time: like.createdAt,
+        });
       });
     });
 
-    followers.forEach(follow => {
+    followers.forEach((follow: any) => {
       activities.push({
       id: follow.followerid,
       user: { name: follow.follower.name, avatar: follow.follower.profileImageURL, username: follow.follower.name },
