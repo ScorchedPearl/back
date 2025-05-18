@@ -52,17 +52,7 @@ jobs:
           passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
           envs: GITHUB_SHA,DOCKERHUB_USERNAME,DATABASE_URL,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,AWS_S3_BUCKET_NAME,JWT_SECRET
           script: |
-            docker pull $DOCKERHUB_USERNAME/pearlpostbackend:${GITHUB_SHA}
-            docker stop pearlpostbackend || true
-            docker rm pearlpostbackend || true
-            docker run -d --name pearlpostbackend \
-              -p 8000:8000 \
-              -p 8080:8080 \
-              -e NODE_ENV=production \
-              -e DATABASE_URL="$DATABASE_URL" \
-              -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
-              -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
-              -e AWS_REGION="$AWS_REGION" \
-              -e AWS_S3_BUCKET_NAME="$AWS_S3_BUCKET_NAME" \
-              -e JWT_SECRET="$JWT_SECRET" \
-              $DOCKERHUB_USERNAME/pearlpostbackend:$GITHUB_SHA
+            git clone https://github.com/back || true
+            cd back
+            docker compose pull backend db
+            docker compose up -d --remove-orphans --build
