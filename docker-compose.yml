@@ -8,6 +8,11 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://user:password@db:5432/dbname
+      - AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+      - AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - AWS_REGION=ap-south-1
+      - AWS_S3_BUCKET_NAME=pearlpost
+      - JWT_SECRET=${{ secrets.JWT_SECRET }}
     depends_on:
       - db
   
