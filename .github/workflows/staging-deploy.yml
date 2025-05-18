@@ -32,16 +32,36 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/pearlpostbackend:${{ github.sha }}
 
-      # - name: Set up SSH key
-      #   uses: webfactory/ssh-agent@v0.9.0
-      #   with:
-      #     ssh-private-key: ${{ secrets.VM_SSH_KEY }}
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      # - name: Deploy on VM via SSH
-      #   run: |
-      #     ssh -o StrictHostKeyChecking=no ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} '
-      #       docker pull ${{ secrets.DOCKERHUB_USERNAME }}/pearlpostbackend:staging && \
-      #       docker stop pearlpostbackend || true && \
-      #       docker rm pearlpostbackend || true && \
-      #       docker run -d --name pearlpostbackend -p 8000:8000 -p 8080:8080 --env NODE_ENV=production --env DATABASE_URL=${{ secrets.DATABASE_URL }} ${{ secrets.DOCKERHUB_USERNAME }}/pearlpostbackend:staging
-      #     '
+      - name: Deploy on VM via SSH with password
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          SSH_PASSWORD: ${{ secrets.VM_SSH_PASSWORD }}
+          VM_USER: ${{ secrets.VM_USER }}
+          VM_HOST: ${{ secrets.VM_HOST }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no $VM_USER@$VM_HOST '
+            docker pull $DOCKERHUB_USERNAME/pearlpostbackend:${GITHUB_SHA} && \
+            docker stop pearlpostbackend || true && \
+            docker rm pearlpostbackend || true && \
+            docker run -d --name pearlpostbackend \
+              -p 8000:8000 \
+              -p 8080:8080 \
+              -e NODE_ENV=production \
+              -e DATABASE_URL="$DATABASE_URL" \
+              -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
+              -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
+              -e AWS_REGION="$AWS_REGION" \
+              -e AWS_S3_BUCKET_NAME="$AWS_S3_BUCKET_NAME" \
+              -e JWT_SECRET="$JWT_SECRET" \
+              $DOCKERHUB_USERNAME/pearlpostbackend:$GITHUB_SHA
+          '
