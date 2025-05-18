@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String  @id @default(cuid())
+  name            String
+  email           String  @unique
+  password        String?
+  profileImageURL String?
+  title           String?
+  likes           Like[]  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rooms            Room[]
+  messages         Message[]
+  reactions        Reaction[]
+  posts            Post[]
+  comments         Comment[]
+  replies          Reply[]
+  stories          Story[]
+  recommendedUsers User[]    @relation("UserRecommendations")
+  recommendedBy    User?     @relation("UserRecommendations", fields: [recommendedById], references: [id])
+  recommendedById  String?
+  followers        Follows[] @relation("followers")
+  following        Follows[] @relation("following")
+}
+
+model Post {
+  id        String    @id @default(cuid())
+  content   String
+  imageURL  String?
+  videoURL  String?
+  likes     Like[]
+  comments  Comment[]
+  reactions Reaction[]
+
+  author   User   @relation(fields: [authorId], references: [id] )
+  authorId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Story {
+  id        String   @id @default(cuid())
+  imageURL  String?
+  videoURL  String?
+  likes     Like[]
+  reactions Reaction[]
+
+  author   User   @relation(fields: [authorId], references: [id] )
+  authorId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  postId    String?
+  post      Post?    @relation(fields: [postId], references: [id])
+  commentId String?
+  comment   Comment? @relation(fields: [commentId], references: [id])
+  replyId   String?
+  reply     Reply?   @relation(fields: [replyId], references: [id])
+  storyId   String?
+  story     Story?   @relation(fields: [storyId], references: [id])
+  @@unique([userId, postId])
+  @@unique([userId, commentId])
+  @@unique([userId, replyId])
+  @@unique([userId, storyId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  imageURL  String?
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String
+  replies   Reply[]
+  likes     Like[]
+  reactions Reaction[]
+}
+
+
+model Follows {
+  follower   User   @relation("followers", fields: [followerid], references: [id])
+  followerid String
+
+  following   User   @relation("following", fields: [followingid], references: [id])
+  followingid String
+  createdAt   DateTime @default(now())
+  @@id([followerid, followingid])
+}
+
+model Reply {
+  id        String   @id @default(cuid())
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  comment   Comment  @relation(fields: [commentId], references: [id])
+  commentId String
+  content   String
+  imageURL  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  likes     Like[]
+  reactions Reaction[]
+}
+
+
+model Message{
+  id        String   @id @default(cuid())
+  text      String?
+  imageURL  String?
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id])
+  reactions  Reaction[]
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Reaction{
+  id        String   @id @default(cuid())
+  type      String
+  messageId  String?
+  message    Message?  @relation(fields: [messageId], references: [id])
+  postId     String?
+  post       Post?     @relation(fields: [postId], references: [id])
+  storyId    String?
+  story      Story?    @relation(fields: [storyId], references: [id])
+  commentId  String?
+  comment    Comment?  @relation(fields: [commentId], references: [id])
+  replyId    String?
+  reply      Reply?    @relation(fields: [replyId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([authorId, messageId])
+  @@unique([authorId, postId])
+  @@unique([authorId, storyId])
+  @@unique([authorId, commentId])
+  @@unique([authorId, replyId])
+}
+
+model Room{
+  id        String   @id @default(cuid())
+  name      String?
+  avatar    String?
+  users     User[]
+  messages  Message[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
