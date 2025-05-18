@@ -32,13 +32,9 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/pearlpostbackend:${{ github.sha }}
 
-      - name: Install sshpass
-        run: sudo apt-get update && sudo apt-get install -y sshpass
-
-      - name: Deploy on VM via SSH with password
+      - name: Deploy on VM via SSH with key
         env:
           GITHUB_SHA: ${{ github.sha }}
-          SSH_PASSWORD: ${{ secrets.VM_SSH_PASSWORD }}
           VM_USER: ${{ secrets.VM_USER }}
           VM_HOST: ${{ secrets.VM_HOST }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -48,11 +44,15 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           AWS_S3_BUCKET_NAME: ${{ secrets.AWS_S3_BUCKET_NAME }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        run: |
-          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no $VM_USER@$VM_HOST '
-            docker pull $DOCKERHUB_USERNAME/pearlpostbackend:${GITHUB_SHA} && \
-            docker stop pearlpostbackend || true && \
-            docker rm pearlpostbackend || true && \
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            docker pull $DOCKERHUB_USERNAME/pearlpostbackend:${GITHUB_SHA}
+            docker stop pearlpostbackend || true
+            docker rm pearlpostbackend || true
             docker run -d --name pearlpostbackend \
               -p 8000:8000 \
               -p 8080:8080 \
@@ -64,4 +64,3 @@ jobs:
               -e AWS_S3_BUCKET_NAME="$AWS_S3_BUCKET_NAME" \
               -e JWT_SECRET="$JWT_SECRET" \
               $DOCKERHUB_USERNAME/pearlpostbackend:$GITHUB_SHA
-          '
